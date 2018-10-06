@@ -7,6 +7,14 @@
     "engines": {
         "vscode": "^1.26.0"
     },
+    "bugs": {
+        "url": "https://github.com/DaRoee/arrow-function-converter/issues"
+    },
+    "homepage": "https://github.com/DaRoee/arrow-function-converter/blob/master/README.md",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DaRoee/arrow-function-converter/"
+    },
     "categories": [
         "Other"
     ],
