@@ -50,7 +50,10 @@ function activate(context: any) {
         editBuilder.replace(new vscode.Range(line, 0, line, 9999), newHeader + newContent + footer);
       }).then(() => {
         // selection.active.character = contentCol;
-        // selection.active.line = line + 1;
+        const position = selection.active;
+        const newPosition = position.with(position.line + 1, col + tabSize);
+        const newSelection = new vscode.Selection(newPosition, newPosition);
+        editor.selection = newSelection;
       });
     }
   );
