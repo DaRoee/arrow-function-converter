@@ -37,13 +37,14 @@ function activate(context: any) {
       [params, content] = content.split(/=>(.+)/);
       if (isBadContent(content)) return;
 
-      const actualContent = content.split(/\).$/)[0];
+      // remove trailing ')' and ');'
+      const actualContent = content.substr(0, content.lastIndexOf(')'))
       const tabSize = editor.options.tabSize;
       const startCol = "\t".repeat(Math.floor(col / tabSize));
       params = verifyAndTransformParams(params);
       const newHeader = `${header}(${params} => {\n\n`;
       const newContent = `${startCol}\treturn ${actualContent.trim()};\n`;
-      const footer = `${startCol}});`;
+      const footer = `${startCol}})`; // no ';' here to allow chaining
 
       editor.edit((editBuilder: any) => {
         editBuilder.replace(new vscode.Range(line, 0, line, 9999), newHeader + newContent + footer);
