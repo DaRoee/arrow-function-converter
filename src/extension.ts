@@ -1,6 +1,14 @@
 const vscode = require("vscode");
 
-const verifyParams = (params: string) => {
+const isBadContent = (content: string) => {
+  // content doesn't exist/looks like a multiline function
+  if (!content || !content.split(/\).$/) || content.trim() === "{") {
+    vscode.window.showInformationMessage("Selected line is not in a 1 liner format")
+    return true;
+  }
+};
+
+const verifyAndTransformParams = (params: string) => {
   params = params.trim();
   if (params.includes("(") || params.split(",").length === 1) {
     return params;
@@ -25,16 +33,14 @@ function activate(context: any) {
       let content;
       let params;
       [header, content] = text.split(/\((.+)/);
+      if (isBadContent(content)) return;
       [params, content] = content.split(/=>(.+)/);
-
-      if (!content || !content.split(/\).$/) || content.trim() === "{") {
-        return;
-      }
+      if (isBadContent(content)) return;
 
       const actualContent = content.split(/\).$/)[0];
       const tabSize = editor.options.tabSize;
       const startCol = "\t".repeat(Math.floor(col / tabSize));
-      params = verifyParams(params);
+      params = verifyAndTransformParams(params);
       const newHeader = `${header}(${params} => {\n\n`;
       const newContent = `${startCol}\treturn ${actualContent.trim()};\n`;
       const footer = `${startCol}});`;
