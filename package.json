@@ -2,7 +2,7 @@
     "name": "arrow-function-converter",
     "displayName": "Arrow Function Converter",
     "description": "Convert single line functions to multiline!",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "publisher": "Roee",
     "engines": {
         "vscode": "^1.26.0"
