@@ -3,7 +3,7 @@ const vscode = require("vscode");
 const isBadContent = (content: string) => {
   // content doesn't exist/looks like a multiline function
   if (!content || !content.split(/\).$/) || content.trim() === "{") {
-    vscode.window.showInformationMessage("Selected line is not in a 1 liner format")
+    vscode.window.showInformationMessage("Selected line is not in a 1 liner format");
     return true;
   }
 };
@@ -27,25 +27,31 @@ function activate(context: any) {
       const selection = editor.selection;
       const line = selection.active.line;
       const text = editor.document.lineAt(line).text;
-      const col = text.search(/\w/);
+      const col = text.search(/[^\s]/);
       const tabSize = editor.options.tabSize;
-      const startCol = editor.options.insertSpaces ? Math.floor(col / tabSize) : col - 1;
-
-      let header;
-      let content;
-      let params;
-      [header, content] = text.split(/\((.+)/);
-      if (isBadContent(content)) return;
-      [params, content] = content.split(/=>(.+)/);
-      if (isBadContent(content)) return;
+      let startCol = editor.options.insertSpaces ? Math.floor(col / tabSize) : col;
+    
+      let headerWithParams, header, content, params;
+      [headerWithParams, content] = text.split(/=>(.+)/);
+      const functionStartPos = headerWithParams.lastIndexOf("(");
+      if (isBadContent(content)) {
+        return;
+      }
+      // split and get params without the paranthesis
+      [header, params] = [headerWithParams.slice(0, functionStartPos), headerWithParams.slice(functionStartPos + 1)];
 
       // remove trailing ')' and ');'
-      const actualContent = content.substr(0, content.lastIndexOf(')'))
+      // const actualContent = content.substr(0, content.lastIndexOf(')'));
+      const openBracketsNum = headerWithParams.split("(").length - headerWithParams.split(")").length;
+      for (let i = openBracketsNum; i > 0; i--) {
+        content = content.substr(0, content.lastIndexOf(')'));
+      }
+
       const startColWithText = "\t".repeat(startCol);
       params = verifyAndTransformParams(params);
       const newHeader = `${header}(${params} => {\n\n`;
-      const newContent = `${startColWithText}\treturn ${actualContent.trim()};\n`;
-      const footer = `${startColWithText}})`; // no ';' here to allow chaining
+      const newContent = `${startColWithText}\treturn ${content.trim()};\n`;
+      const footer = `${startColWithText}}${")".repeat(openBracketsNum)}`; // no ';' here to allow chaining
 
       editor.edit((editBuilder: any) => {
         editBuilder.replace(new vscode.Range(line, 0, line, 9999), newHeader + newContent + footer);
