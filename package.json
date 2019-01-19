@@ -1,7 +1,7 @@
 {
     "name": "arrow-function-converter",
     "displayName": "Arrow Function Converter",
-    "description": "",
+    "description": "Convert single line functions to multiline!",
     "version": "0.1.1",
     "publisher": "Roee",
     "engines": {
