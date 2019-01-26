@@ -17,7 +17,7 @@ const verifyAndTransformParams = (params: string) => {
   return `(${params})`;
 };
 
-export function transformToMutiline(tabNum: number, text: string): string {
+export function transformToMutiline(tabNum: number, text: string, semicolonEnding: string = ";"): string {
   let headerWithParams, header, content, params;
   [headerWithParams, content] = text.split(/=>(.+)/);
   const functionStartPos = headerWithParams.lastIndexOf("(");
@@ -37,9 +37,23 @@ export function transformToMutiline(tabNum: number, text: string): string {
   params = verifyAndTransformParams(params);
   const newHeader = `${header}(${params} => {\n${startColWithText}\t\n`;
   const newContent = `${startColWithText}\treturn ${content.trim()};\n`;
-  const footer = `${startColWithText}}${")".repeat(openBracketsNum)}`; // no ';' here to allow chaining
+  const footer = `${startColWithText}}${")".repeat(openBracketsNum)}${semicolonEnding}`;
 
   return newHeader + newContent + footer;
+}
+
+export function functionEndsWith(editor: any, line: number): string {
+  const maxLine = editor.visibleRanges[0].end.line;
+  line++;
+  while (!editor.document.lineAt(line).text.trim() || line >= maxLine) {
+    line++;
+  }
+
+  if (editor.document.lineAt(line).text.trim().startsWith(".")) {
+    return "";
+  }
+
+  return ";";
 }
 
 export function activate(context: any) {
@@ -49,28 +63,26 @@ export function activate(context: any) {
       return;
     }
 
-    const selection = editor.selection;
-    const line = selection.active.line;
+    const line = editor.selection.active.line;
     const text = editor.document.lineAt(line).text;
     const col = text.search(/[^\s]/);
     const tabSize = editor.options.tabSize;
     const tabNum = editor.options.insertSpaces ? Math.floor(col / tabSize) : col;
+    const semicolonEnding = functionEndsWith(editor, line);
 
-    const multilineFunc = transformToMutiline(tabNum, text);
+    const multilineFunc = transformToMutiline(tabNum, text, semicolonEnding);
     if (!multilineFunc) {
       return;
     }
 
-    editor
-      .edit((editBuilder: any) => {
+    editor.edit((editBuilder: any) => {
         editBuilder.replace(new vscode.Range(line, 0, line, 9999), multilineFunc);
       })
       .then(() => {
-        const position = selection.active;
+        const position = editor.selection.active;
         const startCol = editor.options.insertSpaces ? col + tabSize : col + 1;
         const newPosition = position.with(position.line + 1, startCol);
-        const newSelection = new vscode.Selection(newPosition, newPosition);
-        editor.selection = newSelection;
+        editor.selection = new vscode.Selection(newPosition, newPosition);;
       });
   });
   context.subscriptions.push(insertLogStatement);

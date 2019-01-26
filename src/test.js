@@ -11,6 +11,7 @@ headFunc = function() {
 
 Promise.reject("")
 	.then(res => res.json())
+	
 	.then(attr => ({ data: { id: userId, attr } }));
 
 this.firstFunc().pipe(tap(x => this.secondFunc({ x })))
