@@ -17,58 +17,63 @@ const verifyAndTransformParams = (params: string) => {
   return `(${params})`;
 };
 
-function activate(context: any) {
+export function transformToMutiline(tabNum: number, text: string): string {
+  let headerWithParams, header, content, params;
+  [headerWithParams, content] = text.split(/=>(.+)/);
+  const functionStartPos = headerWithParams.lastIndexOf("(");
+  if (isBadContent(content)) {
+    return "";
+  }
+  // split and get params without the paranthesis
+  [header, params] = [headerWithParams.slice(0, functionStartPos), headerWithParams.slice(functionStartPos + 1)];
+
+  const openBracketsNum = headerWithParams.split("(").length - headerWithParams.split(")").length;
+  for (let i = openBracketsNum; i > 0; i--) {
+    // remove trailing ')' and ');'
+    content = content.substr(0, content.lastIndexOf(")"));
+  }
+
+  const startColWithText = "\t".repeat(tabNum);
+  params = verifyAndTransformParams(params);
+  const newHeader = `${header}(${params} => {\n${startColWithText}\t\n`;
+  const newContent = `${startColWithText}\treturn ${content.trim()};\n`;
+  const footer = `${startColWithText}}${")".repeat(openBracketsNum)}`; // no ';' here to allow chaining
+
+  return newHeader + newContent + footer;
+}
+
+export function activate(context: any) {
   const insertLogStatement = vscode.commands.registerCommand("extension.arrowFunctionConverter", () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-        return;
-      }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return;
+    }
 
-      const selection = editor.selection;
-      const line = selection.active.line;
-      const text = editor.document.lineAt(line).text;
-      const col = text.search(/[^\s]/);
-      const tabSize = editor.options.tabSize;
-      let startCol = editor.options.insertSpaces ? Math.floor(col / tabSize) : col;
-    
-      let headerWithParams, header, content, params;
-      [headerWithParams, content] = text.split(/=>(.+)/);
-      const functionStartPos = headerWithParams.lastIndexOf("(");
-      if (isBadContent(content)) {
-        return;
-      }
-      // split and get params without the paranthesis
-      [header, params] = [headerWithParams.slice(0, functionStartPos), headerWithParams.slice(functionStartPos + 1)];
+    const selection = editor.selection;
+    const line = selection.active.line;
+    const text = editor.document.lineAt(line).text;
+    const col = text.search(/[^\s]/);
+    const tabSize = editor.options.tabSize;
+    const tabNum = editor.options.insertSpaces ? Math.floor(col / tabSize) : col;
 
-      // remove trailing ')' and ');'
-      // const actualContent = content.substr(0, content.lastIndexOf(')'));
-      const openBracketsNum = headerWithParams.split("(").length - headerWithParams.split(")").length;
-      for (let i = openBracketsNum; i > 0; i--) {
-        content = content.substr(0, content.lastIndexOf(')'));
-      }
+    const multilineFunc = transformToMutiline(tabNum, text);
+    if (!multilineFunc) {
+      return;
+    }
 
-      const startColWithText = "\t".repeat(startCol);
-      params = verifyAndTransformParams(params);
-      const newHeader = `${header}(${params} => {\n\n`;
-      const newContent = `${startColWithText}\treturn ${content.trim()};\n`;
-      const footer = `${startColWithText}}${")".repeat(openBracketsNum)}`; // no ';' here to allow chaining
-
-      editor.edit((editBuilder: any) => {
-        editBuilder.replace(new vscode.Range(line, 0, line, 9999), newHeader + newContent + footer);
-      }).then(() => {
-        // selection.active.character = contentCol;
+    editor
+      .edit((editBuilder: any) => {
+        editBuilder.replace(new vscode.Range(line, 0, line, 9999), multilineFunc);
+      })
+      .then(() => {
         const position = selection.active;
         const startCol = editor.options.insertSpaces ? col + tabSize : col + 1;
         const newPosition = position.with(position.line + 1, startCol);
         const newSelection = new vscode.Selection(newPosition, newPosition);
         editor.selection = newSelection;
       });
-    }
-  );
+  });
   context.subscriptions.push(insertLogStatement);
 }
 
-exports.activate = activate;
-
-function deactivate() {}
-exports.deactivate = deactivate;
+export function deactivate() {}
