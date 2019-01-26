@@ -1,22 +1,41 @@
-//
-// Note: This example test is leveraging the Mocha test framework.
-// Please refer to their documentation on https://mochajs.org/ for help.
-//
+import * as assert from "assert";
+import { transformToMutiline } from "../extension";
 
-// The module 'assert' provides assertion methods from node
-import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-// import * as vscode from 'vscode';
-// import * as myExtension from '../extension';
-
-// Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", function () {
+  test("simple transformation", function () {
+    const tabNum = 0;
+    const text = '[1, 2, 3].map(x => x * 2);';
+    const result = '[1, 2, 3].map(x => {\n\t\n\treturn x * 2;\n})';
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
 
-    // Defines a Mocha unit test
-    test("Something 1", function() {
-        assert.equal(-1, [1, 2, 3].indexOf(5));
-        assert.equal(-1, [1, 2, 3].indexOf(0));
-    });
+  test("indented code transformation", function () {
+    const tabNum = 2;
+    const tabsMultiplied = "\t".repeat(tabNum);
+    const text = `${tabsMultiplied}[1, 2, 3].map(x => x * 2);`;
+    const result = `${tabsMultiplied}[1, 2, 3].map(x => {\n${tabsMultiplied}\t\n${tabsMultiplied}\treturn x * 2;\n${tabsMultiplied}})`;
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
+
+  test("function returns a function", function () {
+    const tabNum = 0;
+    const text = '[1, 2, 3].map(x => () => x * 2);';
+    const result = '[1, 2, 3].map(x => {\n\t\n\treturn () => x * 2;\n})';
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
+
+  test("chaining", function () {
+    const tabNum = 1;
+    const tabsMultiplied = "\t".repeat(tabNum);
+    const text = `${tabsMultiplied}.then(res => res.json())`;
+    const result = `${tabsMultiplied}.then(res => {\n${tabsMultiplied}\t\n${tabsMultiplied}\treturn res.json();\n${tabsMultiplied}})`;
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
+
+  test("multiple function calls in the same line", function () {
+    const tabNum = 0;
+    const text = 'this.firstFunc().pipe(tap(x => this.secondFunc({ x })));';
+    const result = 'this.firstFunc().pipe(tap(x => {\n\t\n\treturn this.secondFunc({ x });\n}))';
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
 });
