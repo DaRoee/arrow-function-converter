@@ -1,12 +1,12 @@
 [1, 2, 3].map(x => x * 2);
 		[1, 2, 3].map(x => x * 2);
 
-headFunc = function() {
-  func = [1, 2, 3].map(x => () => x * 2);
+const headFunc = function() {
+  const func = [1, 2, 3].map(x => () => x * 2);
 };
 
-headFunc = function() {
-  func = [1, 2, 3].map(x => x * 2);
+const headFunc2 = function() {
+  const func = [1, 2, 3].map(x => x * 2);
 };
 
 Promise.reject("")

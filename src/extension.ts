@@ -86,9 +86,9 @@ export function activate(context: any) {
         editBuilder.replace(new vscode.Range(line, 0, line, 9999), multilineFunc);
       })
       .then(() => {
-        const position = line + 1;
+        const position = editor.selection.active;
         const startCol = editor.options.insertSpaces ? col + tabSize : col + 1;
-        const newPosition = position.with(position.line + 1, startCol);
+        const newPosition = position.with(line + 1, startCol);
         editor.selection = new vscode.Selection(newPosition, newPosition);
       });
   });
