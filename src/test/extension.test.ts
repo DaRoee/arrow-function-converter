@@ -38,12 +38,15 @@ suite("Extension Tests", function() {
     assert.equal(transformToMutiline(tabNum, text), result);
   });
 
+  test("function with types", function() {
+    const tabNum = 0;
+    const text = "combineLatest(func1, func2).subscribe(([val1, val2]: [number, string]) => `${val1}${val2}`)";
+    const result = "combineLatest(func1, func2).subscribe(([val1, val2]: [number, string]) => {\n\t\n\t return `${val1}${val2}`\n})";
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
+
   test.skip("should not add a semicolon if function is part of some chaining", function() {
     // const tabNum = 0;
     // const text = `Promise.reject("")\n\t.then(res => res.json())\n\t.then(attr => ({ data: { id: userId, attr } }));`;
-  });
-
-  test.skip("chaining with two functions in the same line", function() {
-
   });
 });
