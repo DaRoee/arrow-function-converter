@@ -44,16 +44,18 @@ export function transformToMutiline(tabNum: number, text: string, semicolonEndin
 
 export function functionEndsWith(editor: any, line: number): string {
   const maxLine = editor.visibleRanges[0].end.line;
-  if (editor.document.lineAt(line).text.trim().endsWith(',')) {
-    return ',';
+  const currentLineText = editor.document.lineAt(line).text.trim();
+  const endsWithContinuation = ['.', ','].find(lineEnd => currentLineText.endsWith(lineEnd));
+  if (endsWithContinuation) {
+    return endsWithContinuation;
   }
 
   line++;
-  while (!editor.document.lineAt(line).text.trim() || line >= maxLine) {
+  while (line <= maxLine && !editor.document.lineAt(line).text.trim()) {
     line++;
   }
 
-  if (editor.document.lineAt(line).text.trim().startsWith(".")) {
+  if (line <= maxLine && editor.document.lineAt(line).text.trim().startsWith(".")) {
     return "";
   }
 
@@ -66,7 +68,6 @@ export function activate(context: any) {
     if (!editor) {
       return;
     }
-
     const line = editor.selection.active.line;
     const text = editor.document.lineAt(line).text;
     const col = text.search(/[^\s]/);
