@@ -32,7 +32,11 @@ export function transformToMutiline(tabNum: number, text: string, semicolonEndin
     // remove trailing ')' and ');'
     content = content.substr(0, content.lastIndexOf(')'));
   }
-  [content, initialValue] = content.split(',');
+
+  // check if the content is not an object, otherwise shouldn't have ','
+  if (!content.includes('{')) {
+    [content, initialValue] = content.split(',');
+  }
   initialValue = initialValue !== undefined ? ', ' + initialValue.trim() : '';
 
   const startColWithText = '\t'.repeat(tabNum);

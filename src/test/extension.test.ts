@@ -24,6 +24,13 @@ suite("Extension Tests", function() {
     assert.equal(transformToMutiline(tabNum, text), result);
   });
 
+  test("function returns an object", function() {
+    const tabNum = 0;
+    const text = ".then(attr => ({ data: { id: userId, attr } }));";
+    const result = ".then(attr => {\n\t\n\treturn ({ data: { id: userId, attr } })\n});";
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
+
   test("multiple function calls in the same line", function() {
     const tabNum = 0;
     const text = "this.firstFunc().pipe(tap(x => this.secondFunc({ x })));";
