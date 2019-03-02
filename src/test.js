@@ -15,3 +15,8 @@ Promise.reject("")
 	.then(attr => ({ data: { id: userId, attr } }));
 
 this.firstFunc().pipe(tap(x => this.secondFunc({ x })))
+
+this.firstFunc().pipe(
+	tap(x => this.secondFunc({ x })),
+	debounceTime(1000)
+)

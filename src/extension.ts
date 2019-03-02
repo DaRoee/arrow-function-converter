@@ -44,6 +44,10 @@ export function transformToMutiline(tabNum: number, text: string, semicolonEndin
 
 export function functionEndsWith(editor: any, line: number): string {
   const maxLine = editor.visibleRanges[0].end.line;
+  if (editor.document.lineAt(line).text.trim().endsWith(',')) {
+    return ',';
+  }
+
   line++;
   while (!editor.document.lineAt(line).text.trim() || line >= maxLine) {
     line++;
