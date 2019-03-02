@@ -20,3 +20,5 @@ this.firstFunc().pipe(
 	tap(x => this.secondFunc({ x })),
 	debounceTime(1000)
 )
+
+this.sum = this.someArr.reduce((sum, item) => sum + item, 0);

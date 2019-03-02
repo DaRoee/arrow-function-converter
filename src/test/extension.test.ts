@@ -31,6 +31,13 @@ suite("Extension Tests", function() {
     assert.equal(transformToMutiline(tabNum, text), result);
   });
 
+  test("reduce with multiple parameters", function() {
+    const tabNum = 0;
+    const text = "const sum = someArr.reduce((sum, item) => sum + item, 0);";
+    const result = "const sum = someArr.reduce((sum, item) => {\n\t\n\treturn sum + item;\n}, 0);";
+    assert.equal(transformToMutiline(tabNum, text), result);
+  });
+
   test.skip("should not add a semicolon if function is part of some chaining", function() {
     // const tabNum = 0;
     // const text = `Promise.reject("")\n\t.then(res => res.json())\n\t.then(attr => ({ data: { id: userId, attr } }));`;
