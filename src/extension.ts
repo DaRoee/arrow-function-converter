@@ -33,8 +33,8 @@ export function transformToMutiline(tabNum: number, text: string, semicolonEndin
     content = content.substr(0, content.lastIndexOf(')'));
   }
 
-  // check if the content is not an object, otherwise shouldn't have ','
-  if (!content.includes('{')) {
+  // check if the content is not an object or object creation, otherwise shouldn't have ','
+  if (!content.includes('{') && !content.includes('(')) {
     [content, initialValue] = content.split(',');
   }
   initialValue = initialValue !== undefined ? ', ' + initialValue.trim() : '';

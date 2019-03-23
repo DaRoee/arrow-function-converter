@@ -22,3 +22,5 @@ this.firstFunc().pipe(
 )
 
 this.sum = this.someArr.reduce((sum, item) => sum + item, 0);
+
+const func = [1, 2, 3].map(x => Person(`Person ${x}`));
