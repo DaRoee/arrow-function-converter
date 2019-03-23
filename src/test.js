@@ -18,6 +18,7 @@ this.firstFunc().pipe(tap(x => this.secondFunc({ x })))
 
 this.firstFunc().pipe(
 	tap(x => this.secondFunc({ x })),
+	action => this.store.dispatch(action),
 	debounceTime(1000)
 )
 

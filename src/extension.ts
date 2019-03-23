@@ -17,19 +17,19 @@ const verifyAndTransformParams = (params: string) => {
   return `(${params})`;
 };
 
-export function transformToMutiline(tabNum: number, text: string, semicolonEnding: string = ';'): string {
-  let headerWithParams, header, content, params, initialValue;
+export function transformToMutiline(tabNum: number, text: string, contentEnding: string = ';'): string {
+  let headerWithParams, content, initialValue;
   [headerWithParams, content] = text.split(/=>(.+)/);
   const functionStartPos = headerWithParams.lastIndexOf('(');
   if (isBadContent(content)) {
     return '';
   }
-  // split and get params without the paranthesis
-  [header, params] = [headerWithParams.slice(0, functionStartPos), headerWithParams.slice(functionStartPos + 1)];
 
+  // remove trailing ';'/','/'.'
+  content =  content.substr(0, (Math.max(content.lastIndexOf(contentEnding), 0) || content.length));
   const openBracketsNum = headerWithParams.split('(').length - headerWithParams.split(')').length;
   for (let i = openBracketsNum; i > 0; i--) {
-    // remove trailing ')' and ');'
+    // remove trailing ')'
     content = content.substr(0, content.lastIndexOf(')'));
   }
 
@@ -40,12 +40,24 @@ export function transformToMutiline(tabNum: number, text: string, semicolonEndin
   initialValue = initialValue !== undefined ? ', ' + initialValue.trim() : '';
 
   const startColWithText = '\t'.repeat(tabNum);
-  params = verifyAndTransformParams(params);
-  const newHeader = `${header}(${params} => {\n${startColWithText}\t\n`;
+  const newHeader = createHeader(headerWithParams, functionStartPos, startColWithText);
   const newContent = `${startColWithText}\treturn ${content.trim()};\n`;
-  const footer = `${startColWithText}}${initialValue}${')'.repeat(openBracketsNum)}${semicolonEnding}`;
+  const footer = `${startColWithText}}${initialValue}${')'.repeat(openBracketsNum)}${contentEnding}`;
 
   return newHeader + newContent + footer;
+}
+
+function createHeader(headerWithParams: string, functionStartPos: number, startColWithText: string): string {
+  let header, params;
+  if (functionStartPos > 0) {
+    // split and get params without the paranthesis
+    [header, params] = [headerWithParams.slice(0, functionStartPos), headerWithParams.slice(functionStartPos + 1)];
+    params = verifyAndTransformParams(params);
+    return `${header}(${params} => {\n${startColWithText}\t\n`;
+  } else {
+    return `${headerWithParams} => {\n${startColWithText}\t\n`;
+  }
+
 }
 
 export function functionEndsWith(editor: any, line: number): string {
@@ -79,9 +91,9 @@ export function activate(context: any) {
     const col = text.search(/[^\s]/);
     const tabSize = editor.options.tabSize;
     const tabNum = editor.options.insertSpaces ? Math.floor(col / tabSize) : col;
-    const semicolonEnding = functionEndsWith(editor, line);
+    const contentEnding = functionEndsWith(editor, line);
 
-    const multilineFunc = transformToMutiline(tabNum, text, semicolonEnding);
+    const multilineFunc = transformToMutiline(tabNum, text, contentEnding);
     if (!multilineFunc) {
       return;
     }
